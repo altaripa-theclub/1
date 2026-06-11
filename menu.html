@@ -269,7 +269,7 @@
     /* ── FOOTER ── */
     footer { border-top: 1px solid var(--color-border); padding: 24px 20px; text-align: center; }
     .footer-sep { width: 1px; height: 22px; background: rgba(255,255,255,0.12); margin: 0 auto 18px; }
-    .footer-info { font-size: 9px; font-weight: 300; letter-spacing: 0.18em; color: rgba(255,255,255,0.35); line-height: 2; text-transform: uppercase; }
+    .footer-info { font-size: 9px; font-weight: 300; letter-spacing: 0.18em; color: rgba(255,255,255,0.5); line-height: 2; text-transform: uppercase; }
 
     /* ── LANG TOGGLE ── */
     #lang-toggle {
@@ -1001,7 +1001,7 @@
 
     <!-- STICKY CTA -->
     <div class="sticky-cta">
-      <a href="https://wa.me/message/OP6XDBXXT7TGB1"
+      <a href="https://altaripa.plateform.app/welcome"
          class="btn-prenota"
          target="_blank" rel="noopener"
          aria-label="Book your table">
@@ -1028,7 +1028,6 @@
   <script>
     'use strict';
 
-    /* ══ MENU PAGE TRANSLATIONS ══ */
     var T = {
       it: {
         tagline:       'Menù Ristorante',
@@ -1037,10 +1036,9 @@
         btnBook:       'Prenota il tuo tavolo',
         allergeniTitle:'Informazioni Allergeni',
         allergeniNote: 'Informazione alla clientela sugli allergeni alimentari (Reg. UE 1169/2011). Le informazioni sulla presenza di sostanze o prodotti che provocano allergie o intolleranze sono disponibili rivolgendosi al personale di servizio. Possibili tracce di glutine, latte, frutta secca, arachidi e sedano in tutte le portate.',
-        toggleLabel:   'Lingua',
         coperto:       'Coperto',
         acqua:         'Acqua Lurisia',
-        dishes: 'it'
+        toggleLabel:   'Lingua'
       },
       en: {
         tagline:       'Restaurant Menu',
@@ -1049,10 +1047,9 @@
         btnBook:       'Reserve your table',
         allergeniTitle:'Allergen Information',
         allergeniNote: 'Customer information on food allergens (EU Reg. 1169/2011). Information on the presence of substances or products causing allergies or intolerances is available by asking the service staff. Possible traces of gluten, milk, nuts, peanuts and celery in all dishes.',
-        toggleLabel:   'Language',
         coperto:       'Cover charge',
         acqua:         'Still water',
-        dishes: 'en'
+        toggleLabel:   'Language'
       },
       de: {
         tagline:       'Speisekarte',
@@ -1061,76 +1058,55 @@
         btnBook:       'Tisch reservieren',
         allergeniTitle:'Allergeninformationen',
         allergeniNote: 'Kundeninformation zu Lebensmittelallergenen (EU-Verordnung 1169/2011). Informationen über das Vorhandensein von Stoffen oder Produkten, die Allergien oder Unverträglichkeiten auslösen, erhalten Sie beim Servicepersonal. Mögliche Spuren von Gluten, Milch, Nüssen, Erdnüssen und Sellerie in allen Gerichten.',
-        toggleLabel:   'Sprache',
         coperto:       'Gedeck',
         acqua:         'Mineralwasser',
-        dishes: 'de'
+        toggleLabel:   'Sprache'
       }
     };
-
-    /* Which text node to show per language for each dish.
-       The dish-name stays in Italian (it's the menu name).
-       The dish-translations div shows the right language line. */
-    function applyDishLang(lang) {
-      /* dish-translations contains <em> elements:
-         IT dishes: first <em> = EN translation, second = DE translation
-         We show/hide the right one and prepend the IT name is always visible in .dish-name */
-      document.querySelectorAll('.dish-translations').forEach(function(div) {
-        var ems = div.querySelectorAll('em');
-        if (lang === 'it') {
-          /* Hide translations, show nothing extra */
-          ems.forEach(function(em) { em.style.display = 'none'; });
-        } else if (lang === 'en') {
-          /* Show only first em (EN), hide second (DE) */
-          ems.forEach(function(em, i) { em.style.display = i === 0 ? 'block' : 'none'; });
-        } else if (lang === 'de') {
-          /* Show only second em (DE), hide first (EN) */
-          ems.forEach(function(em, i) { em.style.display = i === 1 ? 'block' : 'none'; });
-        }
-      });
-
-      /* For dishes with only one translation (single <em>), always show it */
-      document.querySelectorAll('.dish-translations').forEach(function(div) {
-        var ems = div.querySelectorAll('em');
-        if (ems.length === 1 && lang !== 'it') {
-          ems[0].style.display = 'block';
-        }
-      });
-    }
 
     function setLang(lang) {
       if (!Object.prototype.hasOwnProperty.call(T, lang)) return;
       var t = T[lang];
 
+      /* Save + set html lang attribute */
       try { localStorage.setItem('altaripa_lang', lang); } catch(e) {}
       document.documentElement.lang = lang;
 
-      /* Static UI strings */
+      /* 1. All elements with data-i18n key → look up in T */
       document.querySelectorAll('[data-i18n]').forEach(function(el) {
         var key = el.getAttribute('data-i18n');
         if (t[key] !== undefined) el.textContent = t[key];
       });
 
-      /* Section headers: use data-i18n-{lang} attributes */
-      ['it','en','de'].forEach(function(l) {
-        document.querySelectorAll('[data-i18n-' + l + ']').forEach(function(el) {
-          if (l === lang) {
-            el.textContent = el.getAttribute('data-i18n-' + lang);
-          }
-        });
+      /* 2. All elements with data-i18n-it/en/de → pick the right lang attr */
+      document.querySelectorAll('[data-i18n-' + lang + ']').forEach(function(el) {
+        el.textContent = el.getAttribute('data-i18n-' + lang);
       });
 
-      /* Dish language */
-      applyDishLang(lang);
+      /* 3. Dish translations: show only the line matching selected lang */
+      document.querySelectorAll('.dish-translations').forEach(function(div) {
+        var ems = div.querySelectorAll('em');
+        if (lang === 'it') {
+          ems.forEach(function(em) { em.style.display = 'none'; });
+        } else if (lang === 'en') {
+          ems.forEach(function(em, i) {
+            em.style.display = (ems.length === 1 || i === 0) ? 'block' : 'none';
+          });
+        } else if (lang === 'de') {
+          ems.forEach(function(em, i) {
+            em.style.display = (ems.length === 1 ? false : i === 1) ? 'block' : 'none';
+          });
+        }
+      });
 
-      /* Toggle button */
+      /* 4. Toggle button label */
       var codes = { it: 'IT', en: 'EN', de: 'DE' };
       var tl = document.getElementById('toggle-label');
       var tc = document.getElementById('toggle-lang-code');
       if (tl) tl.textContent = t.toggleLabel;
       if (tc) tc.textContent = codes[lang];
 
-      /* Close modal */
+      /* 5. Close modal */
       var overlay = document.getElementById('lang-overlay');
       if (overlay) {
         overlay.classList.add('hidden');
@@ -1147,6 +1123,14 @@
       });
     }
 
+    /* Accordion */
+    function toggleSection(btn) {
+      var section = btn.closest('.menu-section');
+      var isOpen  = section.classList.contains('open');
+      section.classList.toggle('open', !isOpen);
+      btn.setAttribute('aria-expanded', String(!isOpen));
+    }
+
     /* On load: restore saved lang or default EN */
     (function() {
       var lang = 'en';
@@ -1156,14 +1140,6 @@
       } catch(e) {}
       setLang(lang);
     }());
-
-    /* Accordion toggle */
-    function toggleSection(btn) {
-      var section = btn.closest('.menu-section');
-      var isOpen  = section.classList.contains('open');
-      section.classList.toggle('open', !isOpen);
-      btn.setAttribute('aria-expanded', String(!isOpen));
-    }
   </script>
 
 </body>
